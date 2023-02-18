@@ -21,14 +21,17 @@ class Game:
         self.screen = pygame.display.set_mode((Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT))
         pygame.display.set_caption(Constants.GAME_TITLE)
         self.background = pygame.image.load(Constants.IMAGE_BG)
+        self.gameover = pygame.image.load(Constants.IMAGE_GAMEOVER)
 
         # Font for displaying text
         self.font_obj = pygame.font.Font(Constants.FONT_NAME, Constants.FONT_SIZE)
 
-        # Initialize 3 label: level - hits - misses
+        # Initialize game statistics
         self.hits = 0
         self.misses = 0
         self.level = 1
+        self.brains = 3
+        self.zombie_count = 0
 
         # Position of the graves in background
         self.grave_positions = []
@@ -45,27 +48,40 @@ class Game:
 
         # Initialize zombie's sprite sheet - 6 states    
         zombie_sprite_sheet = pygame.image.load(Constants.IMAGE_ZOMBIE)
-        self.zombie = []
-        self.zombie.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_1))
-        self.zombie.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_2))
-        self.zombie.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_3))
-        self.zombie.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_4))
-        self.zombie.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_5))
-        self.zombie.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_6))
+        self.zombie_image = []
+        self.zombie_image.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_1))
+        self.zombie_image.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_2))
+        self.zombie_image.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_3))
+        self.zombie_image.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_4))
+        self.zombie_image.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_5))
+        self.zombie_image.append(zombie_sprite_sheet.subsurface(Constants.ZOM_SPRITE_6))
 
         # Initialize hammer image
         self.hammer_image = pygame.image.load(Constants.IMAGE_HAMMER).convert_alpha()
         self.hammer_image_rotate = transform.rotate(self.hammer_image.copy(), Constants.HAMMER_ANGLE)
 
         # Initialize sound effects
-        self.soundEffect = SoundEffect()
+#        self.soundEffect = SoundEffect()
+
+        # Initialize brains
+        self.brain_image = pygame.transform.scale(pygame.image.load(Constants.IMAGE_BRAIN), (40, 35))
 
     # Calculate the level up based on current hit & LEVEL_HIT_GAP
     def getPlayerLevel(self):
+        if self.level >= Constants.LEVEL_CAP:
+            return Constants.LEVEL_CAP
         nextLevel = int(self.hits / Constants.LEVEL_UP_GAP) + 1
         if nextLevel != self.level:         
-            self.soundEffect.playLevelUpSound() # Play sound level up
+#            self.soundEffect.playLevelUpSound() # Play sound level up
+            self.brains += 1
         return nextLevel
+    
+    # Calculate your brains
+    def update_brain(self, isEaten):
+        if isEaten:
+            self.brains -= 1
+        for brainIndex in range(self.brains):
+            self.screen.blit(self.brain_image, (710 - brainIndex * 60, 550))
 
     # Calculate the time respawning new zombie
     def getStayTime(self, timeToRespawn):
@@ -88,20 +104,21 @@ class Game:
             return False
 
     # Update, rotate the hammer
-    def update_hammer(self, mouse_position, image, image_rotate, isHit):
+    def update_hammer(self, mouse_position, image, image_rotate, isClicked):
         mouse_x = mouse_position[0] - Constants.HAMMER_DISTANCE_X   
         mouse_y = mouse_position[1] - Constants.HAMMER_DISTANCE_Y
-        if isHit:
+        if isClicked:
             self.screen.blit(image_rotate, [mouse_x, mouse_y])
         else:
             self.screen.blit(image, [mouse_x, mouse_y])
 
     # Update the zombie anition, re-calculate the player's hits, misses, level
-    def update_sprite(self, image, graveStoneIndex, isHit):
+    def update_sprite(self, image, graveStoneIndex, isClicked, isEaten):
         # Update the zombie animation
         self.screen.blit(self.background, (0, 0))
         self.screen.blit(image, (self.grave_positions[graveStoneIndex]))
-        self.update_hammer(mouse.get_pos(), self.hammer_image, self.hammer_image_rotate, isHit)
+        self.update_hammer(mouse.get_pos(), self.hammer_image, self.hammer_image_rotate, isClicked)
+        self.update_brain(isEaten)
 
         # Update the player's hits
         current_hit_string = Constants.HIT_TEXT + str(self.hits)
@@ -129,47 +146,60 @@ class Game:
 
     # Start the game's main loop
     def start(self):
-        isHit = False # Check if zombie is hit or not
-        cycle_time = 0  # Count clock's time
-        hammer_time = 0
-        animationIndex = -1
+        # Game settings
         loop = True
+        pic = self.zombie_image[0]
+        mouse.set_visible(False)
+
+        # Flag variables
+        isHit = False
+        isClicked = False
         is_down = False
-        graveStoneIndex = 0
+        isEaten = False
+
+        # Time variables
+        clock = pygame.time.Clock()  # Time variables
+        cycle_time = 0  # Count clock's time
+        timeToRespawn = 1.5
+        stayTime = 0
+        hammer_time = 0
+
+        # Zombie-spawning variables
         zombieStatus = 1
+        graveStoneIndex = 0
         spawnAnimationIndex = 0
         deadAnimationIndex = 3
-        stayTime = 0
-        timeToRespawn = 1.5
-        pic = self.zombie[0]
-        mouse.set_visible(False)
-        clock = pygame.time.Clock()  # Time variables
+        animationIndex = -1
 
-        for i in range(len(self.zombie)):
-            self.zombie[i].set_colorkey((0, 0, 0))
-            self.zombie[i] = self.zombie[i].convert_alpha()     
+        for i in range(len(self.zombie_image)):
+            self.zombie_image[i].set_colorkey((0, 0, 0))
+            self.zombie_image[i] = self.zombie_image[i].convert_alpha()     
 
-        while loop:          
+        while loop:    
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     loop = False
                 if event.type == MOUSEBUTTONDOWN and event.button == Constants.LEFT_MOUSE_BUTTON:
+                    isClicked = True
                     if self.isZombieHit(mouse.get_pos(), self.grave_positions[graveStoneIndex]):
                         zombieStatus = 3
                         is_down = False
                         self.hits += 1
                         self.level = self.getPlayerLevel()
                         timeToRespawn = self.getStayTime(timeToRespawn)
-                        self.soundEffect.playHitSound() # Play hit sound effect
+#                        self.soundEffect.playHitSound() # Play hit sound effect
                         isHit = True
                     else:
                         self.misses += 1
-                        self.soundEffect.playMissSound() # Play miss sound effect
-                        isHit = False                  
+#                        self.soundEffect.playMissSound() # Play miss sound effect
+                        isHit = False
+                else:
+                    isClicked = False
 
             mil = clock.tick(Constants.FPS)
             sec = mil / 1000.0
             cycle_time += sec
+            print(sec, ' ', cycle_time)
             if (zombieStatus == 1): # Zombie status: Go up
                 if cycle_time > Constants.SPAWN_ANI_TIME:
                     if spawnAnimationIndex > Constants.SPAWN_ANI_INDEX_MAX:
@@ -180,14 +210,14 @@ class Game:
                             zombieStatus = 2
                             stayTime = 0
                     else:
-                        pic = self.zombie[spawnAnimationIndex]
+                        pic = self.zombie_image[spawnAnimationIndex]
                         spawnAnimationIndex += 1
                         #self.update_sprite(pic, graveStoneIndex, isHit)
                         cycle_time = 0
 
             if (zombieStatus == 2): # Zombie status: Go down
                 if cycle_time > Constants.SPAWN_ANI_TIME:
-                    pic = self.zombie[spawnAnimationIndex]
+                    pic = self.zombie_image[spawnAnimationIndex]
                     spawnAnimationIndex -= 1
                     #self.update_sprite(pic, graveStoneIndex, isHit)
                     cycle_time = 0
@@ -195,27 +225,30 @@ class Game:
                         spawnAnimationIndex = 0
                         zombieStatus = 1
                         graveStoneIndex = random.randint(0, Constants.GRAVE_NUM_MAX - 1)
+                        isEaten = True
+                    #if spawnAnimationIndex == 1:
 
             if (zombieStatus == 3): #Zombie status: Dead
                 if cycle_time > Constants.DEAD_ANI_TIME:
-                    pic = self.zombie[deadAnimationIndex]
+                    pic = self.zombie_image[deadAnimationIndex]
                     deadAnimationIndex += 1
                     #self.update_sprite(pic, graveStoneIndex, isHit)
                     cycle_time = 0
                     if deadAnimationIndex > Constants.DEAD_ANI_INDEX_MAX:
                         spawnAnimationIndex = 0
-                        pic = self.zombie[spawnAnimationIndex]
+                        pic = self.zombie_image[spawnAnimationIndex]
                         deadAnimationIndex = 3
                         zombieStatus = 1
                         graveStoneIndex = random.randint(0, Constants.GRAVE_NUM_MAX - 1)
 
-            self.update_sprite(pic, graveStoneIndex, isHit)
+            self.update_sprite(pic, graveStoneIndex, isClicked, isEaten)
 
-            #Check hammer animation
-            hammer_time += sec
-            if (hammer_time > Constants.HAMMER_ANI_TIME) & (isHit):
-                hammer_time = 0
-                isHit = False
+            # Gameover condition
+            if self.brains <= 0:
+                self.screen.blit(self.gameover, (0, 0))
+                mouse.set_visible(True)
+            else:
+                isEaten = False
    
             # Update the display     
             pygame.display.flip()

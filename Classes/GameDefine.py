@@ -16,6 +16,7 @@ class GameConstants:
 class LevelConstants:
 	LEVEL_UP_GAP = 5
 	LEVEL_DELAY_TIME = 5
+	LEVEL_CAP = 5
 
 class ZombieConstants:
 	ZOM_WIDTH = 98
@@ -53,7 +54,7 @@ class TimeConstants:
 	RESPAWN_TIME = 1.5
 	RESPAWN_DELTA_TIME = 0.15
 
-	HAMMER_ANI_TIME = 0.8
+	HAMMER_ANI_TIME = 0.1
 
 class AnimationConstants:	
 	SPAWN_ANI_INDEX_MAX = 2
@@ -78,8 +79,10 @@ class TextConstants:
 class ImageConstants:
 	IMAGE = "./Resources/images/"
 	IMAGE_BG = IMAGE + "background.png"
+	IMAGE_GAMEOVER = IMAGE + "gameover.png"
 	IMAGE_HAMMER = IMAGE + "hammer.png"
 	IMAGE_ZOMBIE = IMAGE + "zombie.png"
+	IMAGE_BRAIN	= IMAGE + "brain.png"
  
 class SoundConstants:
 	SOUND = "./Resources/sounds/"
