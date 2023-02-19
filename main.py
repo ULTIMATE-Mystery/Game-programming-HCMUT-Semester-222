@@ -33,11 +33,8 @@ class Game:
         self.brains = 3
         self.zombie_count = 0
 
-        # Initialize zombie list
+        # Initialize a queue of existing zombies
         self.zombie = []
-        for zombieIndex in range(Constants.GRAVE_NUM_MAX):
-            temp = Zombie()
-            self.zombie.append(temp)
 
         # Position of the graves in background
         self.grave_positions = []
@@ -67,7 +64,7 @@ class Game:
         self.hammer_image_rotate = transform.rotate(self.hammer_image.copy(), Constants.HAMMER_ANGLE)
 
         # Initialize sound effects
-#        self.soundEffect = SoundEffect()
+        self.soundEffect = SoundEffect()
 
         # Initialize brains
         self.brain_image = pygame.transform.scale(pygame.image.load(Constants.IMAGE_BRAIN), (40, 35))
@@ -78,44 +75,43 @@ class Game:
             return Constants.LEVEL_CAP
         nextLevel = int(self.hits / Constants.LEVEL_UP_GAP) + 1
         if nextLevel != self.level:         
-#            self.soundEffect.playLevelUpSound() # Play sound level up
+            self.soundEffect.playLevelUpSound() # Play sound level up
             self.brains += 1
         return nextLevel
 
-    # Calculate the time respawning new zombie
-    def getStayTime(self, maxStayTime):
+    # Calculate the time zombie would stay
+    def getStayTime(self):
         maxStayTime = Constants.STAY_TIME - self.level * Constants.STAY_DELTA_TIME
-        if maxStayTime <= Constants.STAY_DELTA_TIME:
-            maxStayTime = Constants.STAY_DELTA_TIME
         return maxStayTime
+    
+    # Calculate the time respawning new zombie
+    def getRespawnTime(self):
+        maxRespawnTime = Constants.RESPAWN_TIME - self.level * Constants.RESPAWN_DELTA_TIME
+        return maxRespawnTime
 
     # Check if the mouse hits zombie or not
-    def isZombieHit(self, mouse_position, current_grave_position):
+    def isZombieHit(self, mouse_position):
         mouse_x = mouse_position[0]
         mouse_y = mouse_position[1]
-        current_hole_x = current_grave_position[0]
-        current_hole_y = current_grave_position[1]
-        distanceX = mouse_x - current_hole_x
-        distanceY = mouse_y - current_hole_y
-        if (0 < distanceX < Constants.ZOM_WIDTH) and (0 < distanceY < Constants.ZOM_HEIGHT):
-            return True
-        else:
-            return False
+        for zombieIndex in range(self.zombie_count):
+            thisZombie = self.zombie[zombieIndex]
+            distanceX = mouse_x - self.grave_positions[thisZombie.index][0]
+            distanceY = mouse_y - self.grave_positions[thisZombie.index][1]
+            if (0 < distanceX < Constants.ZOM_WIDTH) and (0 < distanceY < Constants.ZOM_HEIGHT):
+                return zombieIndex
+        return -1
     
-    # Generate zombie through time based on player's level
-    def generateZombie(self, gameTime, lastSpawnTime, respawnTime):
-        if self.zombie_count > Constants.GRAVE_NUM_MAX:
+    # Generate a new zombie
+    def generateZombie(self):
+        if self.zombie_count >= Constants.GRAVE_NUM_MAX:
             return 0
-        if gameTime - lastSpawnTime < respawnTime:
-            return 0
-        spawnIndex = random.randint(0, Constants.GRAVE_NUM_MAX - self.zombie_count)
-        for zombieIndex in range(Constants.GRAVE_NUM_MAX):
-            if self.zombie[zombieIndex].zombieStatus == -1:
-                spawnIndex -= 1
-            if spawnIndex == -1:
-                self.zombie[zombieIndex].zombieStatus = 0
-                self.zombie[zombieIndex].pic = self.zombie_image[0]
-                self.zombie_count += 1
+        spawnIndex = random.randint(0, Constants.GRAVE_NUM_MAX - 1)
+        for zombieIndex in range(self.zombie_count):
+            if self.zombie[zombieIndex].index == spawnIndex:
+                return 0
+        newZombie = Zombie(spawnIndex, self.zombie_image[0])
+        self.zombie.append(newZombie)
+        self.zombie_count += 1
         return 1
     
     # Calculate player's brains
@@ -134,19 +130,15 @@ class Game:
         else:
             self.screen.blit(image, [mouse_x, mouse_y])
 
-    # Update zombie animation
+    # Update zombie's animation
     def update_sprite(self):
         self.screen.blit(self.background, (0, 0))
-        for zombieIndex in range(Constants.GRAVE_NUM_MAX):
-            if self.zombie[zombieIndex].zombieStatus == -1:
-                continue
-            self.screen.blit(self.zombie[zombieIndex].pic, (self.grave_positions[zombieIndex]))
+        for zombieIndex in range(self.zombie_count):
+            thisZombie = self.zombie[zombieIndex]
+            self.screen.blit(thisZombie.pic, (self.grave_positions[thisZombie.index]))
 
     # Update player's hits, misses, level, brains
     def update_statistics(self, isClicked, isEaten):
-        # Update the zombie animation
-        #self.screen.blit(self.background, (0, 0))
-        #self.screen.blit(image, (self.grave_positions[graveStoneIndex]))
         self.update_hammer(mouse.get_pos(), self.hammer_image, self.hammer_image_rotate, isClicked)
         self.update_brain(isEaten)
 
@@ -178,30 +170,22 @@ class Game:
     def start(self):
         # Game settings
         loop = True
-        pic = self.zombie_image[0]
         mouse.set_visible(False)
 
         # Flag variables
-        isHit = False
         isClicked = False
-        is_down = False
         isEaten = False
 
         # Time variables
         clock = pygame.time.Clock()     # Time variables
         cycle_time = 0                  # Count clock's time
         gameTime = 0
-        maxStayTime = 1.5
-        stayTime = 0
-        hammer_time = 0
         lastSpawnTime = 0
 
         # Zombie-spawning variables
-        zombieStatus = 1
-        graveStoneIndex = 0
-        spawnAnimationIndex = 0
-        deadAnimationIndex = 3
-        animationIndex = -1
+        maxStayTime = 1.5
+        respawnTime = 1.5
+        hitPos = -1
 
         for i in range(len(self.zombie_image)):
             self.zombie_image[i].set_colorkey((0, 0, 0))
@@ -214,17 +198,17 @@ class Game:
                     loop = False
                 if event.type == MOUSEBUTTONDOWN and event.button == Constants.LEFT_MOUSE_BUTTON:
                     isClicked = True
-                    if self.isZombieHit(mouse.get_pos(), self.grave_positions[graveStoneIndex]):
-                        zombieStatus = 3
-                        is_down = False
+                    hitPos = self.isZombieHit(mouse.get_pos())
+                    if hitPos != -1:
+                        self.zombie[hitPos].zombieStatus = 2
                         self.hits += 1
                         self.level = self.getPlayerLevel()
-#                        self.soundEffect.playHitSound() # Play hit sound effect
-                        isHit = True
+                        maxStayTime = self.getStayTime()
+                        respawnTime = self.getRespawnTime()
+                        self.soundEffect.playHitSound() # Play hit sound effect
                     else:
                         self.misses += 1
-#                        self.soundEffect.playMissSound() # Play miss sound effect
-                        isHit = False
+                        self.soundEffect.playMissSound() # Play miss sound effect
                 else:
                     isClicked = False
 
@@ -233,14 +217,11 @@ class Game:
             sec = mil / 1000.0
             cycle_time += sec
             gameTime += sec
-#            print(sec, ' ', gameTime)
-            print(self.zombie[0].zombieStatus, ' ', self.zombie[0].animationIndex)
-#            maxStayTime = self.getStayTime(maxStayTime)
-            
-            for zombieIndex in range(Constants.GRAVE_NUM_MAX):
+
+            # Calculate zombies' variables
+            zombieIndex = 0
+            while zombieIndex < self.zombie_count:
                 thisZombie = self.zombie[zombieIndex]
-                if thisZombie.zombieStatus == -1:
-                    continue
                 thisZombie.stayTime += sec
 
                 # Zombie status: rise
@@ -251,6 +232,7 @@ class Game:
                                 thisZombie.animationIndex = Constants.SPAWN_ANI_INDEX_MAX
                                 thisZombie.zombieStatus = 1
                                 thisZombie.stayTime = 0
+                                continue
                         else:
                             thisZombie.pic = self.zombie_image[thisZombie.animationIndex]
                             thisZombie.animationIndex += 1
@@ -259,26 +241,36 @@ class Game:
                 # Zombie status: run away
                 if thisZombie.zombieStatus == 1:
                     if thisZombie.stayTime > Constants.SPAWN_ANI_TIME:
-                        thisZombie.pic = self.zombie_image[thisZombie.animationIndex]
+                        if thisZombie.animationIndex >= 0:
+                            thisZombie.pic = self.zombie_image[thisZombie.animationIndex]
                         thisZombie.animationIndex -= 1
                         thisZombie.stayTime = 0
-                        if thisZombie.animationIndex < 0:
-                            thisZombie.zombieStatus = -1
+                        # Make sure the last frame doesn't last one frame
+                        if thisZombie.animationIndex < -1:
+                            self.zombie.pop(zombieIndex)
+                            self.zombie_count -= 1
                             isEaten = True
+                            continue
 
                 # Zombie status: dead
                 if thisZombie.zombieStatus == 2:
                     if thisZombie.stayTime > Constants.DEAD_ANI_TIME:
-                        thisZombie.pic = self.zombie_image[thisZombie.animationIndex]
+                        if thisZombie.animationIndex < Constants.DEAD_ANI_INDEX_MAX:
+                            thisZombie.pic = self.zombie_image[thisZombie.animationIndex]
                         thisZombie.animationIndex += 1
                         thisZombie.stayTime = 0
                         if thisZombie.animationIndex > Constants.DEAD_ANI_INDEX_MAX:
-                            thisZombie.zombieStatus = -1
+                            self.zombie.pop(zombieIndex)
+                            self.zombie_count -= 1
+                            continue
+                
+                zombieIndex += 1
 
             self.update_sprite()
             self.update_statistics(isClicked, isEaten)
-            if self.generateZombie(gameTime, lastSpawnTime, 3) == 1:
-                lastSpawnTime = gameTime
+            if gameTime - lastSpawnTime > respawnTime:
+                if self.generateZombie():
+                    lastSpawnTime = gameTime
 
             # Gameover condition
             if self.brains <= 0:

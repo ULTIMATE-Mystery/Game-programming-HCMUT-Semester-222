@@ -52,16 +52,16 @@ class TimeConstants:
 	DEAD_ANI_TIME = 0.1
 
 	RESPAWN_TIME = 1.5
-	RESPAWN_DELTA_TIME = 0.25
+	RESPAWN_DELTA_TIME = 0.2
 
-	STAY_TIME = 1.6
-	STAY_DELTA_TIME = 0.1
+	STAY_TIME = 1.7
+	STAY_DELTA_TIME = 0.3
 
 	HAMMER_ANI_TIME = 0.1
 
 class AnimationConstants:	
 	SPAWN_ANI_INDEX_MAX = 2
-	DEAD_ANI_INDEX_MAX = 5
+	DEAD_ANI_INDEX_MAX = 6
 
 class FontConstants:
 	FONT_NAME = "./Resources/fonts/ZOMBIE.ttf"
@@ -100,7 +100,14 @@ class Constants(GameConstants, LevelConstants, ZombieConstants, GraveConstants, 
 
 class Zombie:
 	def __init__(self):
+		self.index = -1
 		self.zombieStatus = -1
 		self.animationIndex = 0
 		self.stayTime = 0
 		self.pic = None
+	def __init__(self, index, pic):
+		self.index = index					# Equal to position of its grave
+		self.zombieStatus = 0
+		self.animationIndex = 0
+		self.stayTime = 0					# Existing time of its frame
+		self.pic = pic
