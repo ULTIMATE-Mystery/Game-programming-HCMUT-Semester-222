@@ -20,6 +20,8 @@ class Game:
         # Initialize screen and title
         self.screen = pygame.display.set_mode((Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT))
         pygame.display.set_caption(Constants.GAME_TITLE)
+        self.icon = pygame.image.load(Constants.ICON)
+        pygame.display.set_icon(self.icon)
         self.background = pygame.image.load(Constants.IMAGE_BG)
         self.gameover = pygame.image.load(Constants.IMAGE_GAMEOVER)
         self.button1 = pygame.image.load(Constants.IMAGE_BUTTON_1)
@@ -184,11 +186,15 @@ class Game:
     def showEndScreen(self):
         fontEnd = pygame.font.Font(Constants.FONT_NAME, 64)
         missImage = fontEnd.render(str(self.misses), True, (255, 255, 255))
-        scoreImage = fontEnd.render(str(self.hits), True, (255,255, 255))
+        hitImage = fontEnd.render(str(self.hits), True, (255,255, 255))
+        score = self.hits - self.misses
+        if score < 0:
+            score = 0
+        scoreImage = fontEnd.render(str(score), True, (255,255, 255))
         self.screen.blit(self.gameover, (0, 0))
         self.screen.blit(self.button1, (278, 509))
         self.screen.blit(missImage, (580, 364))
-        self.screen.blit(scoreImage, (311, 364))
+        self.screen.blit(hitImage, (311, 364))
         self.screen.blit(scoreImage, (507, 444))
         mouseX, mouseY = pygame.mouse.get_pos()
         if mouseX >= 278 and mouseX <= 557 and mouseY >= 509 and mouseY <= 559:
@@ -337,6 +343,19 @@ class Game:
                             self.hits = 0
                             self.misses = 0
                             self.level = 1
+                            self.zombie_count = 0
+
+                            # Initialize a queue of existing zombies
+                            self.zombie = []
+                            clock = pygame.time.Clock()     # Time variables
+                            cycle_time = 0                  # Count clock's time
+                            gameTime = 0
+                            lastSpawnTime = 0
+
+                            # Zombie-spawning variables
+                            maxStayTime = 5
+                            respawnTime = 1.5
+                            hitPos = -1
 
             pygame.display.update()
 ###########################################################################

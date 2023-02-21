@@ -58,7 +58,7 @@ class TimeConstants:
 
 	HAMMER_ANI_TIME = 0.1
 
-class AnimationConstants:	
+class AnimationConstants:
 	SPAWN_ANI_INDEX_MAX = 2
 	DEAD_ANI_INDEX_MAX = 6
 
@@ -82,6 +82,7 @@ class TextConstants:
 
 class ImageConstants:
 	IMAGE = "./Resources/images/"
+	ICON = IMAGE + "thor.png"
 	IMAGE_START = IMAGE + "start.png"
 	IMAGE_BUTTON_0 = IMAGE + "button0.png"
 	IMAGE_BUTTON_0_HOVER = IMAGE + "button0_hover.png"
