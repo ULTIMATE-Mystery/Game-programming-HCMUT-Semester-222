@@ -1,8 +1,8 @@
-#  Assignment 1 - Game Programming - Semester 222
+#  Assignment 2 - Game Programming - Semester 222
 
-Game Whack-a-zombie made by Pygame
+Game Tiny football made by C++ with SDL2 library
 
-Group:
+Group 8:
 - Phạm Duy Quang - 2011899
 - Nguyễn Vương Long - 1911520
 - Trương Tuấn Cường - 2012775
