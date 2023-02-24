@@ -2,7 +2,7 @@
 
 Game Whack-a-zombie made by Pygame
 
-Group:
+Group 8:
 - Phạm Duy Quang - 2011899
 - Nguyễn Vương Long - 1911520
 - Trương Tuấn Cường - 2012775
