@@ -65,7 +65,7 @@ class AnimationConstants:
 
 class FontConstants:
 	FONT_NAME = "./Resources/fonts/ZOMBIE.ttf"
-	FONT_SIZE = 36
+	FONT_SIZE = 360
 
 class TextConstants:
 	GAME_TITLE = "Whack A Zombie - Assignment 1"
@@ -86,6 +86,7 @@ class ImageConstants:
 	IMAGE_HAMMER = IMAGE + "hammer.png"
 	IMAGE_ZOMBIE = IMAGE + "zombie.png"
 	IMAGE_BRAIN	= IMAGE + "brain.png"
+	IMAGE_POW = IMAGE + "pow.png"
  
 class SoundConstants:
 	SOUND = "./Resources/sounds/"

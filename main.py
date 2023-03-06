@@ -13,7 +13,7 @@ import random
 from pygame import *
 from Classes.GameDefine import Constants
 from Classes.GameDefine import Zombie
-from Classes.SoundEffect import SoundEffect
+#from Classes.SoundEffect import SoundEffect
 
 class Game:
     def __init__(self):
@@ -64,7 +64,7 @@ class Game:
         self.hammer_image_rotate = transform.rotate(self.hammer_image.copy(), Constants.HAMMER_ANGLE)
 
         # Initialize sound effects
-        self.soundEffect = SoundEffect()
+#        self.soundEffect = SoundEffect()
 
         # Initialize brains
         self.brain_image = pygame.transform.scale(pygame.image.load(Constants.IMAGE_BRAIN), (40, 35))
@@ -75,7 +75,7 @@ class Game:
             return Constants.LEVEL_CAP
         nextLevel = int(self.hits / Constants.LEVEL_UP_GAP) + 1
         if nextLevel != self.level:         
-            self.soundEffect.playLevelUpSound() # Play sound level up
+#            self.soundEffect.playLevelUpSound() # Play sound level up
             self.brains += 1
         return nextLevel
 
@@ -205,10 +205,10 @@ class Game:
                         self.level = self.getPlayerLevel()
                         maxStayTime = self.getStayTime()
                         respawnTime = self.getRespawnTime()
-                        self.soundEffect.playHitSound() # Play hit sound effect
+#                        self.soundEffect.playHitSound() # Play hit sound effect
                     else:
                         self.misses += 1
-                        self.soundEffect.playMissSound() # Play miss sound effect
+#                        self.soundEffect.playMissSound() # Play miss sound effect
                 else:
                     isClicked = False
 
@@ -274,7 +274,7 @@ class Game:
 
             # Gameover condition
             if self.brains <= 0:
-                self.screen.blit(self.gameover, (0, 0))
+#                self.screen.blit(self.gameover, (0, 0))
                 mouse.set_visible(True)
             else:
                 isEaten = False
