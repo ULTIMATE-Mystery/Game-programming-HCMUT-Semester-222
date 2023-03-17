@@ -1,6 +1,6 @@
 #  Assignment 1 - Game Programming - Semester 222
 
-Game Whack-a-zombie made by Pygame
+Game "Whack-a-zombie" made by Pygame
 
 Group 8:
 - Phạm Duy Quang - 2011899
