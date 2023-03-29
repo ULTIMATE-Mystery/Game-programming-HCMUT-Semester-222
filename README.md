@@ -1,6 +1,6 @@
 #  Assignment 3 - Game Programming - Semester 222
 
-Game "The Story of a Mother" made by Cocos2d
+Game "Righteous Soldier" made by Pygame
 
 Group 8:
 - Phạm Duy Quang - 2011899
