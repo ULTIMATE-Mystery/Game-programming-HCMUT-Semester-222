@@ -64,9 +64,9 @@ public class PlayerBullet : MonoBehaviour
         //Destroy(hitParticles.gameObject, mainModule.duration);
 
         // Destroy the shell.
-        //if (collision.collider.tag != "Player")
-        //{
-        //    Destroy(gameObject);
-        //}
+        if (collision.collider.tag != "Player")
+        {
+            Destroy(gameObject);
+        }
     }
 }

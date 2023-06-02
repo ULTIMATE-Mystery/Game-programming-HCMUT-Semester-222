@@ -8,16 +8,19 @@ public class GameOverManager : MonoBehaviour
     public PlayerHealth playerHealth;       // Reference to the player's health.
 
     //Animator anim;                          // Reference to the animator component.
+    Canvas scene;
 
     void Awake()
     {
         // Set up the reference.
         //anim = GetComponent<Animator>();
+        scene = GetComponentInChildren<Canvas>();
     }
 
     private void Start()
     {
         StartCoroutine(CheckGameOver());
+        scene.enabled = false;
     }
 
     IEnumerator CheckGameOver()
@@ -30,7 +33,7 @@ public class GameOverManager : MonoBehaviour
 
         // Tell the animator the game is over...
         //anim.SetTrigger("GameOver");
-
+        scene.enabled = true;
         yield return new WaitForSeconds(3f);
 
         // Reload the level that is currently loaded.

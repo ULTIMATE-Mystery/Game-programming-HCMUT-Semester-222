@@ -82,9 +82,10 @@ GameObject:
   - component: {fileID: 4479540869451071120}
   - component: {fileID: 3408386723762905946}
   - component: {fileID: 1742531850896301875}
+  - component: {fileID: 1080143307039070692}
   m_Layer: 6
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -163,7 +164,7 @@ MonoBehaviour:
   m_ActionEvents: []
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: Tank2
+  m_DefaultActionMap: Tank
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
 --- !u!114 &4376878689370758113
@@ -248,9 +249,22 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 0
+  m_BaseOffset: 0.6
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1080143307039070692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1823588680092474936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4631e8d914e204971a92c31e27693e1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SpawnPointsName: HeartSpawnPoint
 --- !u!1 &2042622637064355902
 GameObject:
   m_ObjectHideFlags: 0
@@ -678,6 +692,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2754897449522457745
 GameObject:
   m_ObjectHideFlags: 0
@@ -10947,6 +10962,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &7340229157923278156
 GameObject:
   m_ObjectHideFlags: 0

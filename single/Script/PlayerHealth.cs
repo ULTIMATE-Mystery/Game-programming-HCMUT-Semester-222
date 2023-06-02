@@ -75,7 +75,57 @@ public class PlayerHealth : MonoBehaviour
     }
   }
 
-  void Death()
+    public void AddShield(float time)
+    {
+        StartCoroutine(AddShieldCourtine(time));
+    }
+
+    public IEnumerator AddShieldCourtine(float time)
+    {
+        isInvulnerable = true;
+
+        StartCoroutine(Blink(time));
+
+        yield return new WaitForSeconds(time);
+
+        isInvulnerable = false;
+    }
+
+    IEnumerator Blink(float waitTime)
+    {
+        float endTime = Time.time + waitTime;
+        while (Time.time < endTime)
+        {
+            Renderer[] renders = gameObject.GetComponentsInChildren<Renderer>();
+            for (int i = 0; i < renders.Length; i++)
+            {
+                renders[i].enabled = false;
+            }
+
+            yield return new WaitForSeconds(0.2f);
+
+            for (int i = 0; i < renders.Length; i++)
+            {
+                renders[i].enabled = true;
+            }
+
+            yield return new WaitForSeconds(0.2f);
+        }
+    }
+
+    public void GetLife(int amount)
+    {
+        // Increase the current health by the life amount.
+        currentHealth += amount;
+
+        // Make sure the amount of health is not higher than a hundred
+        currentHealth = Mathf.Clamp(currentHealth, 0, 100);
+
+        // Set the health bar's value to the current health.
+        healthBar.SetHealth(currentHealth);
+    }
+
+    void Death()
   {
     // Set the death flag so this function won't be called again.
     isDead = true;
